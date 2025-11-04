@@ -9,10 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Global Exception Handler pentru gestionarea erorilor
- * Demonstrează principiul de încapsulare prin gestionarea centralizată a excepțiilor
- */
+
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -41,7 +38,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenericException(Exception ex) {
         Map<String, String> error = new HashMap<>();
-        error.put("message", "A apărut o eroare: " + ex.getMessage());
+        error.put("message", "A aparut o eroare: " + ex.getMessage());
         error.put("status", "ERROR");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }

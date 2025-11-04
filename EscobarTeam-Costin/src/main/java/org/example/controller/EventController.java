@@ -61,12 +61,6 @@ public class EventController {
         return ResponseEntity.ok(events);
     }
 
-    @GetMapping("/search/artist")
-    public ResponseEntity<List<EventResponseDTO>> searchByArtist(@RequestParam String artist) {
-        List<EventResponseDTO> events = eventService.searchByArtist(artist);
-        return ResponseEntity.ok(events);
-    }
-
     @GetMapping("/filter/stage")
     public ResponseEntity<List<EventResponseDTO>> filterByStage(@RequestParam Long stageId) {
         List<EventResponseDTO> events = eventService.filterByStage(stageId);

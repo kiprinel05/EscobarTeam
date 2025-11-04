@@ -16,11 +16,11 @@ public class StageDTO {
     @NotBlank(message = "Numele scenei este obligatoriu")
     private String name;
 
-    @NotBlank(message = "Locația este obligatorie")
+    @NotBlank(message = "Locatia este obligatorie")
     private String location;
 
-    @NotNull(message = "Capacitatea maximă este obligatorie")
-    @Positive(message = "Capacitatea maximă trebuie să fie pozitivă")
+    @NotNull(message = "Capacitatea maxima este obligatorie")
+    @Positive(message = "Capacitatea maxima trebuie sa fie pozitiva")
     private Integer maxCapacity;
 }
 

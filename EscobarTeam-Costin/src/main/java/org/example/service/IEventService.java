@@ -13,7 +13,6 @@ public interface IEventService {
     void deleteEvent(Long id);
     
     List<EventResponseDTO> searchByName(String name);
-    List<EventResponseDTO> searchByArtist(String artist);
     List<EventResponseDTO> filterByStage(Long stageId);
     List<EventResponseDTO> filterByDate(LocalDateTime startDate, LocalDateTime endDate);
     List<EventResponseDTO> filterBySpecificDate(LocalDate date);

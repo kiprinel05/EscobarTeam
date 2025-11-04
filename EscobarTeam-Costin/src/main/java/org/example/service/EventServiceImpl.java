@@ -51,7 +51,7 @@ public class EventServiceImpl implements IEventService {
     @Override
     public EventResponseDTO createEvent(EventCreateDTO eventCreateDTO) {
         Stage stage = stageRepository.findById(eventCreateDTO.getStageId())
-                .orElseThrow(() -> new RuntimeException("Scena cu ID-ul " + eventCreateDTO.getStageId() + " nu a fost găsită"));
+                .orElseThrow(() -> new RuntimeException("Scena cu ID-ul " + eventCreateDTO.getStageId() + " nu a fost gasita"));
         
         List<Event> conflictingEvents = eventRepository.findConflictingEvents(
                 eventCreateDTO.getStageId(), 
@@ -60,7 +60,7 @@ public class EventServiceImpl implements IEventService {
         );
         
         if (!conflictingEvents.isEmpty()) {
-            throw new RuntimeException("Scena nu este disponibilă în data și ora specificată");
+            throw new RuntimeException("Scena nu este disponibila in data si ora specificata");
         }
         
         Event event = eventMapper.toEntity(eventCreateDTO, stage);
@@ -74,7 +74,7 @@ public class EventServiceImpl implements IEventService {
                 .orElseThrow(() -> new RuntimeException("Evenimentul cu ID " + id + " nu a fost gasit"));
         
         Stage stage = stageRepository.findById(eventDTO.getStageId())
-                .orElseThrow(() -> new RuntimeException("Scena cu ID-ul " + eventDTO.getStageId() + " nu a fost găsită"));
+                .orElseThrow(() -> new RuntimeException("Scena cu ID-ul " + eventDTO.getStageId() + " nu a fost gasita"));
         
         if (!existingEvent.getDate().equals(eventDTO.getDate()) || 
             !existingEvent.getStage().getId().equals(eventDTO.getStageId())) {
@@ -87,7 +87,7 @@ public class EventServiceImpl implements IEventService {
                     .collect(Collectors.toList());
             
             if (!conflictingEvents.isEmpty()) {
-                throw new RuntimeException("Scena nu este disponibilă în data și ora specificată");
+                throw new RuntimeException("Scena nu este disponibila in data si ora specificata");
             }
         }
         
@@ -107,14 +107,6 @@ public class EventServiceImpl implements IEventService {
     @Override
     public List<EventResponseDTO> searchByName(String name) {
         return eventRepository.findByNameContainingIgnoreCase(name).stream()
-                .map(eventMapper::toResponseDTO)
-                .sorted(Comparator.comparing(EventResponseDTO::getDate))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<EventResponseDTO> searchByArtist(String artist) {
-        return eventRepository.findByAssociatedArtistContainingIgnoreCase(artist).stream()
                 .map(eventMapper::toResponseDTO)
                 .sorted(Comparator.comparing(EventResponseDTO::getDate))
                 .collect(Collectors.toList());

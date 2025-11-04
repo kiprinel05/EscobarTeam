@@ -28,7 +28,7 @@ public class EventDTO {
     private String associatedArtist;
 
     @NotNull(message = "Capacitatea este obligatorie")
-    @Positive(message = "Capacitatea trebuie să fie pozitivă")
+    @Positive(message = "Capacitatea trebuie sa fie pozitiva")
     private Integer capacity;
 
     private LocalDateTime createdAt;
