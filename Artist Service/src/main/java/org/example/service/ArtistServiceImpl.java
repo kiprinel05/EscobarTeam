@@ -3,6 +3,7 @@ package org.example.service;
 import org.example.dto.ArtistCreateDTO;
 import org.example.dto.ArtistDTO;
 import org.example.entity.Artist;
+import org.example.exception.ArtistNotFoundException;
 import org.example.mapper.ArtistMapper;
 import org.example.repository.ArtistRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ public class ArtistServiceImpl implements IArtistService {
     @Override
     public ArtistDTO getArtistById(Long id) {
         Artist artist = artistRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Artistul cu ID " + id + " nu a fost gasit"));
+                .orElseThrow(() -> new ArtistNotFoundException(id));
         return artistMapper.toDTO(artist);
     }
 
@@ -50,7 +51,7 @@ public class ArtistServiceImpl implements IArtistService {
     @Override
     public ArtistDTO updateArtist(Long id, ArtistDTO artistDTO) {
         Artist existingArtist = artistRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Artistul cu ID " + id + " nu a fost gasit"));
+                .orElseThrow(() -> new ArtistNotFoundException(id));
         
         artistMapper.updateEntityFromDTO(artistDTO, existingArtist);
         Artist updatedArtist = artistRepository.save(existingArtist);
@@ -60,7 +61,7 @@ public class ArtistServiceImpl implements IArtistService {
     @Override
     public void deleteArtist(Long id) {
         if (!artistRepository.existsById(id)) {
-            throw new RuntimeException("Artistul cu ID " + id + " nu a fost gasit");
+            throw new ArtistNotFoundException(id);
         }
         artistRepository.deleteById(id);
     }

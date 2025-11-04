@@ -12,11 +12,11 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
+    @ExceptionHandler(ArtistNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleArtistNotFoundException(ArtistNotFoundException ex) {
         Map<String, String> error = new HashMap<>();
         error.put("message", ex.getMessage());
-        error.put("status", "ERROR");
+        error.put("status", "NOT_FOUND");
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
     }
 
