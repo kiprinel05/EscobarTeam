@@ -51,13 +51,13 @@ public class TicketController {
     }
 
     // GET - filtrare bilete după festival
-    @GetMapping("/festival/{festivalId}")
+    @GetMapping("/festival/{eventName}")
     public List<TicketDTO> getTicketsByFestival(@PathVariable String eventName) {
         return ticketService.getTicketsByFestival(eventName);
     }
 
     // GET - verificare locuri disponibile pentru un festival
-    @GetMapping("/festival/{festivalId}/available-seats")
+    @GetMapping("/festival/{eventName}/available-seats")
     public int getAvailableSeats(@PathVariable String eventName) {
         return ticketService.getAvailableSeats(eventName);
     }

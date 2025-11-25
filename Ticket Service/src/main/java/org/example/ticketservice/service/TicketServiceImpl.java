@@ -7,6 +7,7 @@ import org.example.ticketservice.repository.TicketRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Map;
@@ -87,4 +88,5 @@ public class TicketServiceImpl implements TicketService {
                         Collectors.summingDouble(Ticket::getPrice)
                 ));
     }
+
 }
