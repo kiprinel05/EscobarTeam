@@ -15,14 +15,8 @@ import java.util.stream.Collectors;
  */
 @RestController
 public class TokenController {
-
-    /**
-     * Endpoint for viewing the ID token and user claims
-     * OidcUser = interface for auth OpenID Connect user. Extends OAuth2User
-     */
     @GetMapping("/id-token")
     public Mono<Map<String, Object>> getIdToken(@AuthenticationPrincipal Mono<OidcUser> oidcUserMono) {
-        // OidcUser is only available if you requested 'openid' scope
         return oidcUserMono
             .map(oidcUser -> {
                 Map<String, Object> info = new HashMap<>();
