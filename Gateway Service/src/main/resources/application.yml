@@ -1,0 +1,62 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: gateway-service
+  cloud:
+    gateway:
+      routes:
+        - id: artist-service
+          uri: http://localhost:8080
+          predicates:
+            - Path=/api/artists/**
+          filters:
+            - AddRequestHeader=X-Gateway-Request-Id, ${random.uuid}
+            - AddResponseHeader=X-Gateway-Response-Time, ${T(java.time.Instant).now()}
+            - name: CustomHeaderFilter
+          stripPrefix: false
+      default-filters:
+        - AddRequestHeader=X-Requested-With, Gateway-Service
+        - AddResponseHeader=X-Content-Type-Options, nosniff
+        - name: CustomRegionFilter
+          args:
+            region: EU-RO
+            contentLanguage: ro-RO
+            originRegion: Romania
+            contentLocation: Europe/Romania
+
+  zipkin:
+    base-url: http://localhost:9411
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    preferIpAddress: false
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  zipkin:
+    tracing:
+      endpoint: http://localhost:9411/api/v2/spans
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,loggers,shutdown
+  endpoint:
+    health:
+      show-details: always
+    shutdown:
+      access: unrestricted
+
+logging:
+  level:
+    org:
+      example:
+        gateway: INFO
+    org.springframework.cloud.gateway: DEBUG
+
