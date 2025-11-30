@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/tickets")
+@RequestMapping("/api/tickets")
 public class TicketController {
 
     private final TicketService ticketService;
@@ -26,7 +26,7 @@ public class TicketController {
         return ticketService.getAllTickets();
     }
 
-    // GET - un bilet după ID
+    // GET - un bilet dupa ID
     @GetMapping("/{id}")
     public TicketDTO getTicketById(@PathVariable Long id) {
         return ticketService.getTicketById(id);
@@ -44,13 +44,13 @@ public class TicketController {
         return ticketService.updateTicket(id, ticketDTO);
     }
 
-    // DELETE - ștergere bilet
+    // DELETE - stergere bilet
     @DeleteMapping("/{id}")
     public void deleteTicket(@PathVariable Long id) {
         ticketService.deleteTicket(id);
     }
 
-    // GET - filtrare bilete după festival
+    // GET - filtrare bilete dupa festival
     @GetMapping("/festival/{eventName}")
     public List<TicketDTO> getTicketsByFestival(@PathVariable String eventName) {
         return ticketService.getTicketsByFestival(eventName);

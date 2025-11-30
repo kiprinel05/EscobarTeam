@@ -7,7 +7,7 @@ import java.util.List;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
-    // Aici putem adăuga metode personalizate de căutare dacă vrem
+
     List<Ticket> findByEventName(String eventName);
 
     int countByEventName(String eventName);
