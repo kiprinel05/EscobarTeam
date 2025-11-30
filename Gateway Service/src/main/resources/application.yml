@@ -4,6 +4,13 @@ server:
 spring:
   application:
     name: gateway-service
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          public-key-location: classpath:public.key    # cheie publică pentru verificarea JWT
+
   cloud:
     gateway:
       routes:
@@ -14,9 +21,7 @@ spring:
           filters:
             - AddRequestHeader=X-Gateway-Request-Id, ${random.uuid}
             - AddResponseHeader=X-Gateway-Response-Time, ${T(java.time.Instant).now()}
-
             - name: CustomHeaderFilter
-
 
       default-filters:
         - AddRequestHeader=X-Requested-With, Gateway-Service
