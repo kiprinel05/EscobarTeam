@@ -75,6 +75,32 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- OAuth2 Client for Google login -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-oauth2-client</artifactId>
+        </dependency>
+
+        <!-- Security -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- Cloud Resource Manager API access -->
+        <dependency>
+            <groupId>com.google.apis</groupId>
+            <artifactId>google-api-services-cloudresourcemanager</artifactId>
+            <version>v1-rev20240310-2.0.0</version>
+        </dependency>
+
+        <!-- Authenticating with Google services using OAuth2 -->
+        <dependency>
+            <groupId>com.google.auth</groupId>
+            <artifactId>google-auth-library-oauth2-http</artifactId>
+            <version>1.23.0</version>
+        </dependency>
+
         <!-- Spring Boot Starter Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

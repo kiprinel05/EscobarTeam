@@ -1,5 +1,6 @@
 package org.example.gateway.auth;
 
+import org.example.gateway.service.IamRoleService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,12 +18,17 @@ import org.springframework.security.web.server.authentication.ServerAuthenticati
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import reactor.core.publisher.Mono;
 
+import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.util.HashSet;
 import java.util.Set;
 
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
+
+    private final String projectId = "task-2-event-479608";
+    private final IamRoleService iamRoleService = new IamRoleService(projectId);
 
     @Bean
     public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity http) {
@@ -31,18 +37,16 @@ public class SecurityConfig {
                         .authenticationSuccessHandler(successHandler()))
                 .oauth2Client(Customizer.withDefaults())
                 .authorizeExchange(exchange -> exchange
-                        // Event Service - POST, PUT, DELETE necesita ADMIN
+                        .pathMatchers("/role-mapping").authenticated()
+                        
                         .pathMatchers(HttpMethod.POST, "/api/events/**").hasRole("ADMIN")
                         .pathMatchers(HttpMethod.PUT, "/api/events/**").hasRole("ADMIN")
                         .pathMatchers(HttpMethod.DELETE, "/api/events/**").hasRole("ADMIN")
-                        // Event Service - GET este permis pentru toți utilizatorii autentificați
                         .pathMatchers(HttpMethod.GET, "/api/events/**").authenticated()
                         
-                        // Stage Service - POST, PUT, DELETE necesita ADMIN
                         .pathMatchers(HttpMethod.POST, "/api/stages/**").hasRole("ADMIN")
                         .pathMatchers(HttpMethod.PUT, "/api/stages/**").hasRole("ADMIN")
                         .pathMatchers(HttpMethod.DELETE, "/api/stages/**").hasRole("ADMIN")
-                        // Stage Service - GET este permis pentru toti utilizatorii autentificati
                         .pathMatchers(HttpMethod.GET, "/api/stages/**").authenticated()
                         
 
@@ -95,14 +99,24 @@ public class SecurityConfig {
                             Set<GrantedAuthority> mappedAuthorities = new HashSet<>(oidcUser.getAuthorities());
 
                             String email = oidcUser.getEmail();
-                            if (email != null) {
+                            System.out.println("Loading user with email: " + email);
 
-                                if (email.endsWith("@gmail.com")) {
-                                    mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-                                }
-
-                                if (email.endsWith("@festival-admin.ro")) {
-                                    mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                            try {
+                                // Obține rolurile IAM din Google Cloud
+                                Set<GrantedAuthority> iamRoles = iamRoleService.getIamRoles(userRequest, oidcUser);
+                                mappedAuthorities.addAll(iamRoles);
+                                System.out.println("IAM roles retrieved: " + iamRoles);
+                            } catch (GeneralSecurityException | IOException e) {
+                                System.err.println("Error retrieving IAM roles: " + e.getMessage());
+                                e.printStackTrace();
+                                // Fallback: dacă nu se pot obține rolurile IAM, folosește logica veche
+                                if (email != null) {
+                                    if (email.endsWith("@gmail.com")) {
+                                        mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                                    }
+                                    if (email.endsWith("@festival-admin.ro")) {
+                                        mappedAuthorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+                                    }
                                 }
                             }
 
@@ -113,5 +127,6 @@ public class SecurityConfig {
             }
         };
     }
+
 }
 
