@@ -51,7 +51,7 @@ services:
   # Artist Service
   artist-service:
     build:
-      context: ./Artist/Artist Service
+      context: ./Artist Service
       dockerfile: Dockerfile
     container_name: artist-service
     ports:
@@ -79,7 +79,7 @@ services:
   # Event Service
   event-service:
     build:
-      context: ./Event/Event Service
+      context: ./Event Service
       dockerfile: Dockerfile
     container_name: event-service
     ports:
@@ -107,7 +107,7 @@ services:
   # Ticket Service
   ticket-service:
     build:
-      context: ./Ticket/Ticket Service
+      context: ./Ticket Service
       dockerfile: Dockerfile
     container_name: ticket-service
     ports:
