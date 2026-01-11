@@ -80,7 +80,9 @@ public class GoogleCloudIAMService {
             if (iamRole.contains("owner") || iamRole.contains("admin")) {
                 appRoles.add("ROLE_ADMIN");
             } else if (iamRole.contains("editor") || iamRole.contains("manager")) {
+                // Poate fi ARTIST_MANAGER sau TICKET_MANAGER în funcție de context
                 appRoles.add("ROLE_ARTIST_MANAGER");
+                appRoles.add("ROLE_TICKET_MANAGER");
             }
         }
         
@@ -91,11 +93,23 @@ public class GoogleCloudIAMService {
         Set<String> roles = new HashSet<>();
         roles.add("ROLE_USER");
         
-        if (email != null && (email.endsWith("@admin.com") || email.equals("ciprian.dumitrasc@gmail.com"))) {
+        // Admin roles
+        if (email != null && (email.endsWith("@admin.com") || 
+            email.equals("ciprian.dumitrasc@gmail.com") ||
+            email.equals("paulgabryel12@gmail.com"))) {
             roles.add("ROLE_ADMIN");
         }
-        if (email != null && (email.endsWith("@manager.com") || email.equals("sweetvip2017@gmail.com"))) {
+        
+        // Artist Manager roles
+        if (email != null && (email.endsWith("@manager.com") || 
+            email.equals("sweetvip2017@gmail.com"))) {
             roles.add("ROLE_ARTIST_MANAGER");
+        }
+        
+        // Ticket Manager roles
+        if (email != null && (email.endsWith("@ticketmanager.com") || 
+            email.equals("paul505824@gmail.com"))) {
+            roles.add("ROLE_TICKET_MANAGER");
         }
         
         return roles;

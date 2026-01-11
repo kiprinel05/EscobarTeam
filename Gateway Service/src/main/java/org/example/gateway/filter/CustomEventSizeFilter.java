@@ -11,12 +11,12 @@ import java.util.UUID;
 
 /**
  * Custom filter that adds a unique request ID header to requests
- * and a response time header to responses
+ * and a response time header to responses for Event Service
  */
 @Component
-public class CustomHeaderFilter extends AbstractGatewayFilterFactory<CustomHeaderFilter.Config> {
+public class CustomEventSizeFilter extends AbstractGatewayFilterFactory<CustomEventSizeFilter.Config> {
 
-    public CustomHeaderFilter() {
+    public CustomEventSizeFilter() {
         super(Config.class);
     }
 
@@ -26,7 +26,7 @@ public class CustomHeaderFilter extends AbstractGatewayFilterFactory<CustomHeade
             ServerHttpRequest request = exchange.getRequest();
             ServerHttpRequest modifiedRequest = request.mutate()
                     .header("X-Request-ID", UUID.randomUUID().toString())
-                    .header("X-Gateway-Service", "Gateway-Service")
+                    .header("X-Event-Service", "Event-Service")
                     .header("X-Requested-With", "Gateway-Service")
                     .build();
 
@@ -34,7 +34,7 @@ public class CustomHeaderFilter extends AbstractGatewayFilterFactory<CustomHeade
                     .then(Mono.fromRunnable(() -> {
                         ServerHttpResponse response = exchange.getResponse();
                         response.getHeaders().add("X-Response-ID", UUID.randomUUID().toString());
-                        response.getHeaders().add("X-Processed-By", "Gateway-Service");
+                        response.getHeaders().add("X-Processed-By", "Event-Service");
                     }));
         };
     }

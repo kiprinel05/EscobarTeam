@@ -1,9 +1,9 @@
 server:
-  port: 8072
+  port: ${SERVER_PORT:8072}
 
 spring:
   application:
-    name: gateway-service
+    name: ${SPRING_APPLICATION_NAME:gateway-service}
   security:
     oauth2:
       client:
@@ -26,7 +26,7 @@ spring:
       routes:
         # Artist Service Routes
         - id: artist-service
-          uri: http://localhost:8080
+          uri: ${ARTIST_SERVICE_URI:http://artist-service:8080}
           predicates:
             - Path=/api/artists/**
           filters:
@@ -37,7 +37,7 @@ spring:
         
         # Event Service Routes
         - id: event-service
-          uri: http://localhost:8081
+          uri: ${EVENT_SERVICE_URI:http://event-service:8081}
           predicates:
             - Path=/api/events/**
           filters:
@@ -48,7 +48,7 @@ spring:
         
         # Stage Service Routes
         - id: stage-service
-          uri: http://localhost:8081
+          uri: ${EVENT_SERVICE_URI:http://event-service:8081}
           predicates:
             - Path=/api/stages/**
           filters:
@@ -59,7 +59,7 @@ spring:
         
         # Ticket Service Routes
         - id: ticket-service
-          uri: http://localhost:8083
+          uri: ${TICKET_SERVICE_URI:http://ticket-service:8083}
           predicates:
             - Path=/api/tickets/**
           filters:
@@ -79,12 +79,12 @@ spring:
             contentLocation: Europe/Romania
 
   zipkin:
-    base-url: http://localhost:9411
+    base-url: ${SPRING_ZIPKIN_BASE_URL:http://zipkin:9411}
 
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://eureka-server:8761/eureka/}
   instance:
     preferIpAddress: false
 
@@ -94,7 +94,7 @@ management:
       probability: 1.0
   zipkin:
     tracing:
-      endpoint: http://localhost:9411/api/v2/spans
+      endpoint: ${SPRING_ZIPKIN_BASE_URL:http://zipkin:9411}/api/v2/spans
   endpoints:
     web:
       exposure:
@@ -109,27 +109,9 @@ logging:
   level:
     org:
       example:
-        gateway: DEBUG
-    org.springframework.cloud.gateway: DEBUG
-    org.springframework.web: DEBUG
+        gateway: INFO
     com.netflix.discovery: WARN
     com.netflix.eureka: WARN
-
-springdoc:
-  api-docs:
-    enabled: true
-    path: /v3/api-docs
-  swagger-ui:
-    enabled: true
-    path: /swagger-ui.html
-    urls:
-      - url: http://localhost:8080/v3/api-docs
-        name: Artist Service
-      - url: http://localhost:8081/v3/api-docs
-        name: Event Service
-      - url: http://localhost:8083/v3/api-docs
-        name: Ticket Service
-    urls-primary-name: Gateway Service
 
 google:
   cloud:

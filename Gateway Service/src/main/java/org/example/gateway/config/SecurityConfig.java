@@ -35,14 +35,36 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http
             .authorizeExchange(exchanges -> exchanges
+                // Public endpoints
                 .pathMatchers("/actuator/**", "/login/**", "/oauth2/**", 
                              "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**", 
                              "/swagger-resources/**", "/webjars/**").permitAll()
                 .pathMatchers("/id-token", "/role-mapping").authenticated()
-                .pathMatchers("GET", "/api/artists/**").hasAnyRole("USER", "ADMIN", "ARTIST_MANAGER")
+                
+                // Artist Service endpoints - GET permite acces fără autentificare pentru testare
+                .pathMatchers("GET", "/api/artists/**").permitAll()
                 .pathMatchers("POST", "/api/artists/**").hasAnyRole("ADMIN", "ARTIST_MANAGER")
                 .pathMatchers("PUT", "/api/artists/**").hasAnyRole("ADMIN", "ARTIST_MANAGER")
                 .pathMatchers("DELETE", "/api/artists/**").hasRole("ADMIN")
+                
+                // Event Service endpoints - GET permite acces fără autentificare pentru testare
+                .pathMatchers("GET", "/api/events/**").permitAll()
+                .pathMatchers("POST", "/api/events/**").hasAnyRole("ADMIN", "ARTIST_MANAGER")
+                .pathMatchers("PUT", "/api/events/**").hasAnyRole("ADMIN", "ARTIST_MANAGER")
+                .pathMatchers("DELETE", "/api/events/**").hasRole("ADMIN")
+                
+                // Stage Service endpoints - GET permite acces fără autentificare pentru testare
+                .pathMatchers("GET", "/api/stages/**").permitAll()
+                .pathMatchers("POST", "/api/stages/**").hasAnyRole("ADMIN", "ARTIST_MANAGER")
+                .pathMatchers("PUT", "/api/stages/**").hasAnyRole("ADMIN", "ARTIST_MANAGER")
+                .pathMatchers("DELETE", "/api/stages/**").hasRole("ADMIN")
+                
+                // Ticket Service endpoints - GET permite acces fără autentificare pentru testare
+                .pathMatchers("GET", "/api/tickets/**").permitAll()
+                .pathMatchers("POST", "/api/tickets/**").hasAnyRole("ADMIN", "TICKET_MANAGER")
+                .pathMatchers("PUT", "/api/tickets/**").hasAnyRole("ADMIN", "TICKET_MANAGER")
+                .pathMatchers("DELETE", "/api/tickets/**").hasRole("ADMIN")
+                
                 .anyExchange().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
@@ -74,6 +96,8 @@ public class SecurityConfig {
                                     appRoles = iamService.getDefaultRolesForEmail(email);
                                 } else {
                                     appRoles = iamService.mapIamRolesToApplicationRoles(iamRoles);
+                                    // Adaugă și rolurile default pentru a asigura compatibilitate
+                                    appRoles.addAll(iamService.getDefaultRolesForEmail(email));
                                 }
                                 
                                 Set<SimpleGrantedAuthority> authorities = appRoles.stream()
@@ -88,15 +112,11 @@ public class SecurityConfig {
                             })
                             .onErrorResume(error -> {
                                 logger.error("Error loading IAM roles, using default roles", error);
-                                Set<SimpleGrantedAuthority> authorities = new HashSet<>();
-                                authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                                Set<String> appRoles = iamService.getDefaultRolesForEmail(email);
                                 
-                                if (email != null && (email.endsWith("@admin.com") || email.equals("ciprian.dumitrasc@gmail.com"))) {
-                                    authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-                                }
-                                if (email != null && (email.endsWith("@manager.com") || email.equals("sweetvip2017@gmail.com"))) {
-                                    authorities.add(new SimpleGrantedAuthority("ROLE_ARTIST_MANAGER"));
-                                }
+                                Set<SimpleGrantedAuthority> authorities = appRoles.stream()
+                                    .map(SimpleGrantedAuthority::new)
+                                    .collect(Collectors.toSet());
                                 
                                 return Mono.just(new DefaultOidcUser(
                                     authorities,
@@ -109,4 +129,3 @@ public class SecurityConfig {
         };
     }
 }
-
