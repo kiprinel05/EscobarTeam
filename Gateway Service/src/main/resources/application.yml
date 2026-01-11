@@ -5,14 +5,15 @@ spring:
   application:
     name: gateway-service
 
+
   security:
     oauth2:
       client:
         registration:
           google:
-            client-id: 1072236033390-o1cl64d5dsi84gglt9fj9v8d68u4toro.apps.googleusercontent.com
-            client-secret: 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
-            scope: openid, profile, email
+            client-id: 992601312462-24jl5rl4s2tn0ghtmn368ldfi8pvv3o3.apps.googleusercontent.com
+            client-secret: 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
+            scope: openid, profile, email, https://www.googleapis.com/auth/cloud-platform
             redirect-uri: "http://localhost:8072/login/oauth2/code/google"
         provider:
           google:
@@ -22,6 +23,8 @@ spring:
             user-name-attribute: sub
 
   cloud:
+    gcp:
+      project-id: ticketservice-479913
     gateway:
       routes:
         - id: ticket-service

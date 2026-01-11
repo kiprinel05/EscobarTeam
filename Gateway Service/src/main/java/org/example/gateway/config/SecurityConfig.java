@@ -1,5 +1,6 @@
 package org.example.gateway.config;
 
+import org.example.gateway.service.GoogleCloudIAMService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -15,29 +16,31 @@ import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebFluxSecurity
 public class SecurityConfig {
+
+    private final GoogleCloudIAMService googleCloudIAMService;
+
+    public SecurityConfig(GoogleCloudIAMService googleCloudIAMService) {
+        this.googleCloudIAMService = googleCloudIAMService;
+    }
 
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/actuator/**", "/login/**", "/oauth2/**", "/id-token").permitAll()
-
                         .pathMatchers("GET", "/api/tickets/**").hasAnyRole("USER", "ADMIN", "TICKET_MANAGER")
-
                         .pathMatchers("POST", "/api/tickets/**").hasAnyRole("ADMIN", "TICKET_MANAGER")
-
                         .pathMatchers("PUT", "/api/tickets/**").hasAnyRole("ADMIN", "TICKET_MANAGER")
-
                         .pathMatchers("DELETE", "/api/tickets/**").hasRole("ADMIN")
-
                         .anyExchange().authenticated())
                 .oauth2Login(oauth2 -> oauth2
                         .authenticationSuccessHandler(new RedirectServerAuthenticationSuccessHandler("/id-token")))
-                .csrf(csrf -> csrf.disable());
+                .csrf(ServerHttpSecurity.CsrfSpec::disable);
 
         return http.build();
     }
@@ -50,27 +53,30 @@ public class SecurityConfig {
             @Override
             public Mono<OidcUser> loadUser(OidcUserRequest userRequest) {
                 return delegate.loadUser(userRequest)
-                        .map(oidcUser -> {
+                        .flatMap(oidcUser -> {
                             String email = oidcUser.getEmail();
 
-                            Set<SimpleGrantedAuthority> authorities = new HashSet<>();
+                            return googleCloudIAMService.getUserRoles(email, userRequest.getAccessToken())
+                                    .map(iamRoles -> {
+                                        Set<String> appRoles = googleCloudIAMService
+                                                .mapIamRolesToApplicationRoles(iamRoles);
 
-                            authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
+                                        if (appRoles.size() <= 1) { // Only ROLE_USER
+                                            appRoles.addAll(googleCloudIAMService.getDefaultRolesForEmail(email));
+                                        }
 
-                            if (email != null
-                                    && (email.endsWith("@admin.com") || email.equals("paulgabryel12@gmail.com"))) {
-                                authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-                            }
+                                        return appRoles;
+                                    })
+                                    .map(appRoles -> {
+                                        Set<SimpleGrantedAuthority> authorities = appRoles.stream()
+                                                .map(SimpleGrantedAuthority::new)
+                                                .collect(Collectors.toSet());
 
-                            if (email != null
-                                    && (email.endsWith("@manager.com") || email.equals("paul505824@gmail.com"))) {
-                                authorities.add(new SimpleGrantedAuthority("ROLE_TICKET_MANAGER"));
-                            }
-
-                            return new DefaultOidcUser(
-                                    authorities,
-                                    oidcUser.getIdToken(),
-                                    oidcUser.getUserInfo());
+                                        return (OidcUser) new DefaultOidcUser(
+                                                authorities,
+                                                oidcUser.getIdToken(),
+                                                oidcUser.getUserInfo());
+                                    });
                         });
             }
         };
