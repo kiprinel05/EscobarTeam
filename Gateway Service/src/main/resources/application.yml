@@ -9,9 +9,9 @@ spring:
       client:
         registration:
           google:
-            client-id: 1072236033390-o1cl64d5dsi84gglt9fj9v8d68u4toro.apps.googleusercontent.com
-            client-secret: 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
-            scope: openid, profile, email
+            client-id: 495831365838-5oul8qjj85osu680oi03kufql12ktkr5.apps.googleusercontent.com
+            client-secret: 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
+            scope: openid, profile, email, https://www.googleapis.com/auth/cloud-platform
             redirect-uri: "http://localhost:8072/login/oauth2/code/google"
         provider:
           google:
@@ -73,5 +73,10 @@ logging:
     org:
       example:
         gateway: INFO
-    org.springframework.cloud.gateway: DEBUG
+    com.netflix.discovery: WARN
+    com.netflix.eureka: WARN
+
+google:
+  cloud:
+    project-id: escobarteam
 
