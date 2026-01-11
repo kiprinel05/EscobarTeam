@@ -23,14 +23,20 @@ public class EventServiceImpl implements IEventService {
     private final EventRepository eventRepository;
     private final StageRepository stageRepository;
     private final EventMapper eventMapper;
+    private final org.example.client.ArtistServiceClient artistServiceClient;
+    private final org.example.client.TicketServiceClient ticketServiceClient;
 
     @Autowired
     public EventServiceImpl(EventRepository eventRepository, 
                            StageRepository stageRepository, 
-                           EventMapper eventMapper) {
+                           EventMapper eventMapper,
+                           org.example.client.ArtistServiceClient artistServiceClient,
+                           org.example.client.TicketServiceClient ticketServiceClient) {
         this.eventRepository = eventRepository;
         this.stageRepository = stageRepository;
         this.eventMapper = eventMapper;
+        this.artistServiceClient = artistServiceClient;
+        this.ticketServiceClient = ticketServiceClient;
     }
 
     @Override
@@ -247,6 +253,122 @@ public class EventServiceImpl implements IEventService {
                 ));
         
         return new EventStatisticsDTO(totalEvents, totalParticipants, eventsPerDay, participantsPerDay);
+    }
+
+    @Override
+    public EventWithArtistDetailsDTO getEventWithArtistDetails(Long eventId) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new RuntimeException("Evenimentul cu ID " + eventId + " nu a fost gasit"));
+        
+        EventResponseDTO eventDTO = eventMapper.toResponseDTO(event);
+        
+        String artistName = event.getAssociatedArtist();
+        String artistGenre = null;
+        Double artistRating = null;
+        
+        if (artistName != null && !artistName.isEmpty()) {
+            try {
+                List<org.example.client.ArtistServiceClient.ArtistDTO> artists = artistServiceClient.getAllArtists();
+                org.example.client.ArtistServiceClient.ArtistDTO artist = artists.stream()
+                        .filter(a -> a.getName().equalsIgnoreCase(artistName))
+                        .findFirst()
+                        .orElse(null);
+                
+                if (artist != null) {
+                    artistGenre = artist.getGenre();
+                    artistRating = artist.getRating();
+                }
+            } catch (Exception e) {
+            }
+        }
+        
+        Integer availableSeats = 0;
+        try {
+            availableSeats = ticketServiceClient.getAvailableSeatsForEvent(event.getName());
+        } catch (Exception e) {
+        }
+        
+        Double revenue = 0.0;
+        try {
+            revenue = ticketServiceClient.getRevenueForEvent(event.getName());
+        } catch (Exception e) {
+        }
+        
+        EventWithArtistDetailsDTO result = new EventWithArtistDetailsDTO();
+        result.setId(eventDTO.getId());
+        result.setName(eventDTO.getName());
+        result.setDate(eventDTO.getDate());
+        result.setStageName(eventDTO.getStageName());
+        result.setCapacity(eventDTO.getCapacity());
+        result.setAssociatedArtist(eventDTO.getAssociatedArtist());
+        result.setArtistGenre(artistGenre);
+        result.setArtistRating(artistRating);
+        result.setAvailableSeats(availableSeats);
+        result.setRevenue(revenue);
+        
+        return result;
+    }
+
+    @Override
+    public EventWithArtistDetailsDTO bookEventSeats(EventBookingDTO bookingDTO) {
+        Event event = eventRepository.findByNameIgnoreCase(bookingDTO.getEventName())
+                .orElseGet(() -> {
+                    List<Event> events = eventRepository.findByNameContainingIgnoreCase(bookingDTO.getEventName());
+                    return events.stream()
+                            .filter(e -> e.getName().equalsIgnoreCase(bookingDTO.getEventName()))
+                            .findFirst()
+                            .orElseThrow(() -> new RuntimeException("Evenimentul cu numele '" + bookingDTO.getEventName() + "' nu a fost gasit"));
+                });
+        
+        Integer availableSeats = Integer.MAX_VALUE;
+        try {
+            availableSeats = ticketServiceClient.getAvailableSeatsForEvent(bookingDTO.getEventName());
+        } catch (Exception e) {
+        }
+        
+        if (availableSeats < bookingDTO.getNumberOfSeats()) {
+            throw new RuntimeException("Nu sunt suficiente locuri disponibile. Disponibile: " + availableSeats);
+        }
+        
+        String artistGenre = null;
+        Double artistRating = null;
+        
+        if (bookingDTO.getArtistName() != null && !bookingDTO.getArtistName().isEmpty()) {
+            try {
+                List<org.example.client.ArtistServiceClient.ArtistDTO> artists = artistServiceClient.getAllArtists();
+                org.example.client.ArtistServiceClient.ArtistDTO artist = artists.stream()
+                        .filter(a -> a.getName().equalsIgnoreCase(bookingDTO.getArtistName()))
+                        .findFirst()
+                        .orElse(null);
+                
+                if (artist != null) {
+                    artistGenre = artist.getGenre();
+                    artistRating = artist.getRating();
+                }
+            } catch (Exception e) {
+            }
+        }
+        
+        Double revenue = 0.0;
+        try {
+            revenue = ticketServiceClient.getRevenueForEvent(bookingDTO.getEventName());
+        } catch (Exception e) {
+        }
+        
+        EventResponseDTO eventDTO = eventMapper.toResponseDTO(event);
+        EventWithArtistDetailsDTO result = new EventWithArtistDetailsDTO();
+        result.setId(eventDTO.getId());
+        result.setName(eventDTO.getName());
+        result.setDate(eventDTO.getDate());
+        result.setStageName(eventDTO.getStageName());
+        result.setCapacity(eventDTO.getCapacity());
+        result.setAssociatedArtist(eventDTO.getAssociatedArtist());
+        result.setArtistGenre(artistGenre);
+        result.setArtistRating(artistRating);
+        result.setAvailableSeats(availableSeats - bookingDTO.getNumberOfSeats());
+        result.setRevenue(revenue);
+        
+        return result;
     }
 }
 

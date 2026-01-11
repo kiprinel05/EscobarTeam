@@ -3,6 +3,9 @@ package org.example.ticketservice.controller;
 import jakarta.validation.Valid;
 import org.example.ticketservice.dto.TicketCreateDTO;
 import org.example.ticketservice.dto.TicketDTO;
+import org.example.ticketservice.dto.TicketStatisticsDTO;
+import org.example.ticketservice.dto.TicketValidationDTO;
+import org.example.ticketservice.dto.TicketWithEventDetailsDTO;
 import org.example.ticketservice.service.ITicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,6 +32,15 @@ public class TicketController {
     public ResponseEntity<List<TicketDTO>> getAllTickets() {
         List<TicketDTO> tickets = ticketService.getAllTickets();
         return ResponseEntity.ok(tickets);
+    }
+
+    @GetMapping("/statistics")
+    public ResponseEntity<TicketStatisticsDTO> getTicketStatistics(
+            @RequestParam String eventName,
+            @RequestParam String stageName,
+            @RequestParam(defaultValue = "VIP") String ticketType) {
+        TicketStatisticsDTO result = ticketService.getTicketStatisticsByEventAndStage(eventName, stageName, ticketType);
+        return ResponseEntity.ok(result);
     }
 
     // GET - un bilet dupa ID
@@ -92,5 +104,19 @@ public class TicketController {
     public ResponseEntity<Double> getTotalRevenue() {
         Double totalRevenue = ticketService.getTotalRevenue();
         return ResponseEntity.ok(totalRevenue);
+    }
+
+    // GET - bilet cu detalii despre eveniment
+    @GetMapping("/{id}/event-details")
+    public ResponseEntity<TicketWithEventDetailsDTO> getTicketWithEventDetails(@PathVariable Long id) {
+        TicketWithEventDetailsDTO result = ticketService.getTicketWithEventDetails(id);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/validate-and-create")
+    public ResponseEntity<TicketWithEventDetailsDTO> validateAndCreateTicket(
+            @Valid @RequestBody TicketValidationDTO validationDTO) {
+        TicketWithEventDetailsDTO result = ticketService.validateAndCreateTicket(validationDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 }

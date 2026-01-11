@@ -115,4 +115,16 @@ public class EventController {
         EventStatisticsDTO statistics = eventService.generateStatistics();
         return ResponseEntity.ok(statistics);
     }
+
+    @GetMapping("/{id}/details")
+    public ResponseEntity<EventWithArtistDetailsDTO> getEventWithArtistDetails(@PathVariable Long id) {
+        EventWithArtistDetailsDTO result = eventService.getEventWithArtistDetails(id);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/book")
+    public ResponseEntity<EventWithArtistDetailsDTO> bookEventSeats(@Valid @RequestBody EventBookingDTO bookingDTO) {
+        EventWithArtistDetailsDTO result = eventService.bookEventSeats(bookingDTO);
+        return ResponseEntity.ok(result);
+    }
 }

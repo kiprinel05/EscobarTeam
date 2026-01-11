@@ -26,7 +26,7 @@ spring:
       routes:
         # Artist Service Routes
         - id: artist-service
-          uri: http://localhost:8080
+          uri: http://localhost:8082
           predicates:
             - Path=/api/artists/**
           filters:

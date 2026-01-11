@@ -3,6 +3,8 @@ package org.example.controller;
 import jakarta.validation.Valid;
 import org.example.dto.ArtistCreateDTO;
 import org.example.dto.ArtistDTO;
+import org.example.dto.ArtistStagesDTO;
+import org.example.dto.ArtistWithEventsDTO;
 import org.example.service.IArtistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -93,6 +95,26 @@ public class ArtistController {
     public ResponseEntity<List<ArtistDTO>> sortArtistsByRating() {
         List<ArtistDTO> artists = artistService.sortArtistsByRating();
         return ResponseEntity.ok(artists);
+    }
+
+    @GetMapping("/{id}/events")
+    public ResponseEntity<ArtistWithEventsDTO> getArtistWithEvents(@PathVariable Long id) {
+        ArtistWithEventsDTO result = artistService.getArtistWithEvents(id);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/{id}/assign-event")
+    public ResponseEntity<ArtistWithEventsDTO> assignArtistToEvent(
+            @PathVariable Long id,
+            @RequestParam String eventName) {
+        ArtistWithEventsDTO result = artistService.assignArtistToEvent(id, eventName);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/{id}/stages")
+    public ResponseEntity<ArtistStagesDTO> getArtistStages(@PathVariable Long id) {
+        ArtistStagesDTO result = artistService.getArtistStages(id);
+        return ResponseEntity.ok(result);
     }
 }
 

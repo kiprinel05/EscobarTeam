@@ -23,5 +23,8 @@ public interface IEventService {
     List<StageAvailabilityDTO> checkStageAvailability(LocalDateTime date);
     List<EventResponseDTO> getStageSchedule(Long stageId);
     EventStatisticsDTO generateStatistics();
+    
+    EventWithArtistDetailsDTO getEventWithArtistDetails(Long eventId);
+    EventWithArtistDetailsDTO bookEventSeats(EventBookingDTO bookingDTO);
 }
 
