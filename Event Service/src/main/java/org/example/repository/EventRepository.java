@@ -17,6 +17,8 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     
     List<Event> findByAssociatedArtistContainingIgnoreCase(String artist);
     
+    List<Event> findByAssociatedArtistIgnoreCase(String artist);
+    
     List<Event> findByStageId(Long stageId);
     
     List<Event> findByDateBetween(LocalDateTime startDate, LocalDateTime endDate);

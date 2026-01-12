@@ -3,6 +3,7 @@ package org.example.ticketservice.controller;
 import jakarta.validation.Valid;
 import org.example.ticketservice.dto.TicketCreateDTO;
 import org.example.ticketservice.dto.TicketDTO;
+import org.example.ticketservice.dto.TicketWithEventDetailsDTO;
 import org.example.ticketservice.service.ITicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -92,5 +93,24 @@ public class TicketController {
     public ResponseEntity<Double> getTotalRevenue() {
         Double totalRevenue = ticketService.getTotalRevenue();
         return ResponseEntity.ok(totalRevenue);
+    }
+
+    // GET - detalii despre eveniment si artisti pentru un bilet
+    @GetMapping("/event/{eventName}/details")
+    public ResponseEntity<TicketWithEventDetailsDTO> getTicketWithEventDetails(
+            @PathVariable String eventName,
+            @RequestHeader(value = "X-Content-Language", required = false, defaultValue = "ro-RO") String language) {
+        TicketWithEventDetailsDTO ticketDetails = ticketService.getTicketWithEventDetails(eventName, language);
+        return ResponseEntity.ok(ticketDetails);
+    }
+
+    // POST - cumpara bilete cu validare din Event Service
+    @PostMapping("/purchase-with-validation")
+    public ResponseEntity<TicketDTO> purchaseTicketWithValidation(
+            @Valid @RequestBody TicketCreateDTO ticketCreateDTO,
+            @RequestHeader(value = "X-Region", required = false, defaultValue = "EU-RO") String region,
+            @RequestHeader(value = "X-Content-Language", required = false, defaultValue = "ro-RO") String language) {
+        TicketDTO createdTicket = ticketService.purchaseTicketWithValidation(ticketCreateDTO, region, language);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdTicket);
     }
 }

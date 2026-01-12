@@ -3,6 +3,7 @@ package org.example.controller;
 import jakarta.validation.Valid;
 import org.example.dto.ArtistCreateDTO;
 import org.example.dto.ArtistDTO;
+import org.example.dto.ArtistWithEventsDTO;
 import org.example.service.IArtistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -93,6 +94,25 @@ public class ArtistController {
     public ResponseEntity<List<ArtistDTO>> sortArtistsByRating() {
         List<ArtistDTO> artists = artistService.sortArtistsByRating();
         return ResponseEntity.ok(artists);
+    }
+
+    @GetMapping("/{id}/events")
+    public ResponseEntity<ArtistWithEventsDTO> getArtistWithEvents(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Region", required = false, defaultValue = "EU-RO") String region,
+            @RequestHeader(value = "X-Content-Language", required = false, defaultValue = "ro-RO") String language) {
+        ArtistWithEventsDTO artistWithEvents = artistService.getArtistWithEvents(id, region, language);
+        return ResponseEntity.ok(artistWithEvents);
+    }
+
+    @PostMapping("/{id}/schedule-event")
+    public ResponseEntity<ArtistWithEventsDTO> scheduleEventForArtist(
+            @PathVariable Long id,
+            @RequestParam String eventName,
+            @RequestHeader(value = "X-Region", required = false, defaultValue = "EU-RO") String region,
+            @RequestHeader(value = "X-Content-Language", required = false, defaultValue = "ro-RO") String language) {
+        ArtistWithEventsDTO result = artistService.scheduleEventForArtist(id, eventName, region, language);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 }
 

@@ -62,7 +62,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=1q2w3e
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411
-      - SPRING_APPLICATION_NAME=Artist Service
+      - SPRING_APPLICATION_NAME=ARTIST-SERVICE
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,7 +76,7 @@ services:
       timeout: 10s
       retries: 3
 
-  # Event Service
+  # Event Service - Instanța 1
   event-service:
     build:
       context: ./Event Service
@@ -90,7 +90,35 @@ services:
       - SPRING_DATASOURCE_PASSWORD=1q2w3e
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411
-      - SPRING_APPLICATION_NAME=Event Service
+      - SPRING_APPLICATION_NAME=EVENT-SERVICE
+    depends_on:
+      postgres:
+        condition: service_healthy
+      eureka-server:
+        condition: service_started
+    networks:
+      - festival-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Event Service - Instanța 2 (pentru load balancing)
+  event-service-2:
+    build:
+      context: ./Event Service
+      dockerfile: Dockerfile
+    container_name: event-service-2
+    ports:
+      - "8082:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/festival_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=1q2w3e
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411
+      - SPRING_APPLICATION_NAME=EVENT-SERVICE
     depends_on:
       postgres:
         condition: service_healthy
@@ -118,7 +146,7 @@ services:
       - SPRING_DATASOURCE_PASSWORD=1q2w3e
       - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - SPRING_ZIPKIN_BASE_URL=http://zipkin:9411
-      - SPRING_APPLICATION_NAME=Ticket Service
+      - SPRING_APPLICATION_NAME=TICKET-SERVICE
     depends_on:
       postgres:
         condition: service_healthy

@@ -2,6 +2,7 @@ package org.example.service;
 
 import org.example.dto.ArtistCreateDTO;
 import org.example.dto.ArtistDTO;
+import org.example.dto.ArtistWithEventsDTO;
 
 import java.util.List;
 
@@ -18,5 +19,7 @@ public interface IArtistService {
     List<ArtistDTO> filterArtistsByMinRating(Double minRating);
     List<ArtistDTO> sortArtistsByName();
     List<ArtistDTO> sortArtistsByRating();
+    ArtistWithEventsDTO getArtistWithEvents(Long id, String region, String language);
+    ArtistWithEventsDTO scheduleEventForArtist(Long id, String eventName, String region, String language);
 }
 

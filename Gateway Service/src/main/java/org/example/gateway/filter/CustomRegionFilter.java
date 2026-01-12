@@ -23,9 +23,19 @@ public class CustomRegionFilter extends AbstractGatewayFilterFactory<CustomRegio
         return (exchange, chain) -> {
             ServerHttpRequest request = exchange.getRequest();
             
+            String region = request.getHeaders().getFirst("X-Region");
+            if (region == null || region.isEmpty()) {
+                region = config.getRegion();
+            }
+            
+            String contentLanguage = request.getHeaders().getFirst("X-Content-Language");
+            if (contentLanguage == null || contentLanguage.isEmpty()) {
+                contentLanguage = config.getContentLanguage();
+            }
+            
             ServerHttpRequest modifiedRequest = request.mutate()
-                    .header("X-Region", config.getRegion())
-                    .header("X-Content-Language", config.getContentLanguage())
+                    .header("X-Region", region)
+                    .header("X-Content-Language", contentLanguage)
                     .header("X-Origin-Region", config.getOriginRegion())
                     .build();
 

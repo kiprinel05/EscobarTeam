@@ -2,6 +2,7 @@ package org.example.ticketservice.service;
 
 import org.example.ticketservice.dto.TicketCreateDTO;
 import org.example.ticketservice.dto.TicketDTO;
+import org.example.ticketservice.dto.TicketWithEventDetailsDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -18,4 +19,6 @@ public interface ITicketService {
     Map<String, Double> getRevenueByFestival();
     List<TicketDTO> getTicketsByType(String ticketType);
     Double getTotalRevenue();
+    TicketWithEventDetailsDTO getTicketWithEventDetails(String eventName, String language);
+    TicketDTO purchaseTicketWithValidation(TicketCreateDTO ticketCreateDTO, String region, String language);
 }

@@ -24,48 +24,52 @@ spring:
       project-id: escobarteam
     gateway:
       routes:
-        # Artist Service Routes
+        # Artist Service Routes (folosește Eureka pentru load balancing)
         - id: artist-service
-          uri: ${ARTIST_SERVICE_URI:http://artist-service:8080}
+          uri: lb://ARTIST-SERVICE
           predicates:
             - Path=/api/artists/**
           filters:
             - AddRequestHeader=X-Requested-With, Gateway-Service
             - AddRequestHeader=X-Gateway-Request-Id, ${random.uuid}
             - name: CustomHeaderFilter
+            - PreserveHostHeader
           stripPrefix: false
         
-        # Event Service Routes
+        # Event Service Routes (folosește Eureka pentru load balancing)
         - id: event-service
-          uri: ${EVENT_SERVICE_URI:http://event-service:8081}
+          uri: lb://EVENT-SERVICE
           predicates:
             - Path=/api/events/**
           filters:
             - AddRequestHeader=X-Requested-With, Gateway-Service
             - AddRequestHeader=X-Gateway-Request-Id, ${random.uuid}
             - name: CustomHeaderFilter
+            - PreserveHostHeader
           stripPrefix: false
         
-        # Stage Service Routes
+        # Stage Service Routes (folosește Eureka pentru load balancing)
         - id: stage-service
-          uri: ${EVENT_SERVICE_URI:http://event-service:8081}
+          uri: lb://EVENT-SERVICE
           predicates:
             - Path=/api/stages/**
           filters:
             - AddRequestHeader=X-Requested-With, Gateway-Service
             - AddRequestHeader=X-Gateway-Request-Id, ${random.uuid}
             - name: CustomEventSizeFilter
+            - PreserveHostHeader
           stripPrefix: false
         
-        # Ticket Service Routes
+        # Ticket Service Routes (folosește Eureka pentru load balancing)
         - id: ticket-service
-          uri: ${TICKET_SERVICE_URI:http://ticket-service:8083}
+          uri: lb://TICKET-SERVICE
           predicates:
             - Path=/api/tickets/**
           filters:
             - AddRequestHeader=X-Requested-With, Gateway-Service
             - AddRequestHeader=X-Gateway-Request-Id, ${random.uuid}
             - name: CustomHeaderFilter
+            - PreserveHostHeader
           stripPrefix: false
       
       default-filters:

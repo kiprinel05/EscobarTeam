@@ -115,4 +115,28 @@ public class EventController {
         EventStatisticsDTO statistics = eventService.generateStatistics();
         return ResponseEntity.ok(statistics);
     }
+
+    @GetMapping("/filter/artist")
+    public ResponseEntity<List<EventResponseDTO>> filterByArtist(@RequestParam String artist) {
+        List<EventResponseDTO> events = eventService.filterByArtist(artist);
+        return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/{id}/ticket-info")
+    public ResponseEntity<EventWithTicketInfoDTO> getEventWithTicketInfo(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Region", required = false, defaultValue = "EU-RO") String region) {
+        EventWithTicketInfoDTO eventInfo = eventService.getEventWithTicketInfo(id, region);
+        return ResponseEntity.ok(eventInfo);
+    }
+
+    @PostMapping("/{id}/reserve-tickets")
+    public ResponseEntity<EventWithTicketInfoDTO> reserveTicketsForEvent(
+            @PathVariable Long id,
+            @RequestParam Integer quantity,
+            @RequestParam String ticketType,
+            @RequestHeader(value = "X-Region", required = false, defaultValue = "EU-RO") String region) {
+        EventWithTicketInfoDTO result = eventService.reserveTicketsForEvent(id, quantity, ticketType, region);
+        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+    }
 }

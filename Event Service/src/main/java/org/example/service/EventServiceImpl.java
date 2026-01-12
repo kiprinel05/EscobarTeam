@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.client.TicketServiceClient;
 import org.example.dto.*;
 import org.example.entity.Event;
 import org.example.entity.Stage;
@@ -23,14 +24,17 @@ public class EventServiceImpl implements IEventService {
     private final EventRepository eventRepository;
     private final StageRepository stageRepository;
     private final EventMapper eventMapper;
+    private final TicketServiceClient ticketServiceClient;
 
     @Autowired
     public EventServiceImpl(EventRepository eventRepository, 
                            StageRepository stageRepository, 
-                           EventMapper eventMapper) {
+                           EventMapper eventMapper,
+                           TicketServiceClient ticketServiceClient) {
         this.eventRepository = eventRepository;
         this.stageRepository = stageRepository;
         this.eventMapper = eventMapper;
+        this.ticketServiceClient = ticketServiceClient;
     }
 
     @Override
@@ -247,6 +251,77 @@ public class EventServiceImpl implements IEventService {
                 ));
         
         return new EventStatisticsDTO(totalEvents, totalParticipants, eventsPerDay, participantsPerDay);
+    }
+
+    @Override
+    public List<EventResponseDTO> filterByArtist(String artist) {
+        return eventRepository.findByAssociatedArtistContainingIgnoreCase(artist).stream()
+                .map(eventMapper::toResponseDTO)
+                .sorted(Comparator.comparing(EventResponseDTO::getDate))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public EventWithTicketInfoDTO getEventWithTicketInfo(Long id, String region) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Evenimentul cu ID " + id + " nu a fost gasit"));
+        
+        EventResponseDTO eventDTO = eventMapper.toResponseDTO(event);
+        
+        Integer availableSeats = ticketServiceClient.getAvailableSeats(event.getName(), "Gateway-Service");
+        Map<String, Double> revenueMap = ticketServiceClient.getRevenueByFestival("Gateway-Service");
+        Double totalRevenue = revenueMap.getOrDefault(event.getName(), 0.0);
+        
+        String ticketStatus;
+        if (availableSeats == null || availableSeats <= 0) {
+            ticketStatus = "SOLD_OUT";
+        } else if (availableSeats < event.getCapacity() * 0.1) {
+            ticketStatus = "LIMITED";
+        } else {
+            ticketStatus = "AVAILABLE";
+        }
+        
+        String message = getPriceMessage(region, event.getName(), totalRevenue);
+        
+        EventWithTicketInfoDTO dto = new EventWithTicketInfoDTO();
+        dto.setId(eventDTO.getId());
+        dto.setName(eventDTO.getName());
+        dto.setDate(eventDTO.getDate());
+        dto.setStageId(eventDTO.getStageId());
+        dto.setStageName(eventDTO.getStageName());
+        dto.setAssociatedArtist(eventDTO.getAssociatedArtist());
+        dto.setCapacity(eventDTO.getCapacity());
+        dto.setCreatedAt(eventDTO.getCreatedAt());
+        dto.setAvailableSeats(availableSeats != null ? availableSeats : 0);
+        dto.setTotalRevenue(totalRevenue);
+        dto.setTicketStatus(ticketStatus);
+        dto.setMessage(message);
+        
+        return dto;
+    }
+
+    @Override
+    public EventWithTicketInfoDTO reserveTicketsForEvent(Long id, Integer quantity, String ticketType, String region) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Evenimentul cu ID " + id + " nu a fost gasit"));
+        
+        Integer availableSeats = ticketServiceClient.getAvailableSeats(event.getName(), "Gateway-Service");
+        
+            throw new RuntimeException("Nu sunt suficiente bilete disponibile. Disponibile: " + 
+                    (availableSeats != null ? availableSeats : 0) + ", Solicitate: " + quantity);
+        }
+        
+        return getEventWithTicketInfo(id, region);
+    }
+
+    private String getPriceMessage(String region, String eventName, Double revenue) {
+        if ("US".equalsIgnoreCase(region) || region.contains("US")) {
+            return String.format("Event '%s' has generated $%.2f in revenue (US pricing).", eventName, revenue);
+        } else if ("EU-RO".equalsIgnoreCase(region) || region.contains("RO")) {
+            return String.format("Evenimentul '%s' a generat %.2f RON în venituri (preturi România).", eventName, revenue);
+        } else {
+            return String.format("Event '%s' has generated %.2f EUR in revenue (EU pricing).", eventName, revenue);
+        }
     }
 }
 
