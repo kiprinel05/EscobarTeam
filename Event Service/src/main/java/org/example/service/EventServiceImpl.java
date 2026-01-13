@@ -17,6 +17,12 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Service implementation for managing events in the festival management system.
+ * Provides business logic for CRUD operations, searching, filtering, scheduling, and ticket management.
+ *
+ * @author EscobarTeam
+ */
 @Service
 @Transactional
 public class EventServiceImpl implements IEventService {
@@ -26,6 +32,14 @@ public class EventServiceImpl implements IEventService {
     private final EventMapper eventMapper;
     private final TicketServiceClient ticketServiceClient;
 
+    /**
+     * Constructs a new {@code EventServiceImpl} with the required dependencies.
+     *
+     * @param eventRepository the repository for event data access
+     * @param stageRepository the repository for stage data access
+     * @param eventMapper the mapper for converting between entities and DTOs
+     * @param ticketServiceClient the Feign client for communicating with the Ticket Service
+     */
     @Autowired
     public EventServiceImpl(EventRepository eventRepository, 
                            StageRepository stageRepository, 
@@ -37,6 +51,11 @@ public class EventServiceImpl implements IEventService {
         this.ticketServiceClient = ticketServiceClient;
     }
 
+    /**
+     * Retrieves all events from the database, sorted by date.
+     *
+     * @return a list of all {@code EventResponseDTO} objects representing all events
+     */
     @Override
     public List<EventResponseDTO> getAllEvents() {
         return eventRepository.findAll().stream()
@@ -45,6 +64,13 @@ public class EventServiceImpl implements IEventService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves an event by its unique identifier.
+     *
+     * @param id the unique identifier of the event to retrieve
+     * @return the {@code EventResponseDTO} object representing the event with the specified ID
+     * @throws RuntimeException if no event exists with the given ID
+     */
     @Override
     public EventResponseDTO getEventById(Long id) {
         Event event = eventRepository.findById(id)
@@ -52,6 +78,14 @@ public class EventServiceImpl implements IEventService {
         return eventMapper.toResponseDTO(event);
     }
 
+    /**
+     * Creates a new event in the system.
+     * Validates stage availability and prevents scheduling conflicts.
+     *
+     * @param eventCreateDTO the DTO containing the data for the new event
+     * @return the {@code EventResponseDTO} object representing the newly created event
+     * @throws RuntimeException if the stage does not exist or is not available at the specified time
+     */
     @Override
     public EventResponseDTO createEvent(EventCreateDTO eventCreateDTO) {
         Stage stage = stageRepository.findById(eventCreateDTO.getStageId())
@@ -72,6 +106,15 @@ public class EventServiceImpl implements IEventService {
         return eventMapper.toResponseDTO(savedEvent);
     }
 
+    /**
+     * Updates an existing event with new information.
+     * Validates stage availability if the date or stage is changed.
+     *
+     * @param id the unique identifier of the event to update
+     * @param eventDTO the DTO containing the updated event information
+     * @return the {@code EventResponseDTO} object representing the updated event
+     * @throws RuntimeException if the event or stage does not exist, or if the stage is not available
+     */
     @Override
     public EventResponseDTO updateEvent(Long id, EventDTO eventDTO) {
         Event existingEvent = eventRepository.findById(id)
@@ -100,6 +143,12 @@ public class EventServiceImpl implements IEventService {
         return eventMapper.toResponseDTO(updatedEvent);
     }
 
+    /**
+     * Deletes an event from the system by its unique identifier.
+     *
+     * @param id the unique identifier of the event to delete
+     * @throws RuntimeException if no event exists with the given ID
+     */
     @Override
     public void deleteEvent(Long id) {
         if (!eventRepository.existsById(id)) {
@@ -108,6 +157,13 @@ public class EventServiceImpl implements IEventService {
         eventRepository.deleteById(id);
     }
 
+    /**
+     * Searches for events whose names contain the specified search string.
+     * The search is case-insensitive and results are sorted by date.
+     *
+     * @param name the search string to match against event names
+     * @return a list of {@code EventResponseDTO} objects matching the search criteria
+     */
     @Override
     public List<EventResponseDTO> searchByName(String name) {
         return eventRepository.findByNameContainingIgnoreCase(name).stream()
@@ -116,6 +172,12 @@ public class EventServiceImpl implements IEventService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Filters events by the stage on which they are held.
+     *
+     * @param stageId the unique identifier of the stage to filter by
+     * @return a list of {@code EventResponseDTO} objects representing events on the specified stage
+     */
     @Override
     public List<EventResponseDTO> filterByStage(Long stageId) {
         return eventRepository.findByStageId(stageId).stream()
@@ -124,6 +186,13 @@ public class EventServiceImpl implements IEventService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Filters events that occur within a specified date range.
+     *
+     * @param startDate the start date and time of the range (inclusive)
+     * @param endDate the end date and time of the range (inclusive)
+     * @return a list of {@code EventResponseDTO} objects representing events within the date range
+     */
     @Override
     public List<EventResponseDTO> filterByDate(LocalDateTime startDate, LocalDateTime endDate) {
         return eventRepository.findByDateBetween(startDate, endDate).stream()
@@ -132,6 +201,12 @@ public class EventServiceImpl implements IEventService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Filters events that occur on a specific date.
+     *
+     * @param date the date to filter by
+     * @return a list of {@code EventResponseDTO} objects representing events on the specified date
+     */
     @Override
     public List<EventResponseDTO> filterBySpecificDate(LocalDate date) {
         LocalDateTime startOfDay = date.atTime(LocalTime.MIN);
@@ -143,6 +218,12 @@ public class EventServiceImpl implements IEventService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Filters events by minimum capacity threshold.
+     *
+     * @param minCapacity the minimum capacity value to filter by
+     * @return a list of {@code EventResponseDTO} objects representing events with capacity greater than or equal to the specified value
+     */
     @Override
     public List<EventResponseDTO> filterByCapacity(Integer minCapacity) {
         return eventRepository.findByCapacityGreaterThanEqual(minCapacity).stream()
@@ -151,6 +232,12 @@ public class EventServiceImpl implements IEventService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves all events sorted by date.
+     *
+     * @param order the sort order, either "asc" for ascending or "desc" for descending (defaults to ascending)
+     * @return a list of {@code EventResponseDTO} objects sorted by date
+     */
     @Override
     public List<EventResponseDTO> sortByDate(String order) {
         List<EventResponseDTO> events = getAllEvents();
@@ -162,6 +249,12 @@ public class EventServiceImpl implements IEventService {
         return events;
     }
 
+    /**
+     * Retrieves all events sorted by capacity.
+     *
+     * @param order the sort order, either "asc" for ascending or "desc" for descending (defaults to ascending)
+     * @return a list of {@code EventResponseDTO} objects sorted by capacity
+     */
     @Override
     public List<EventResponseDTO> sortByCapacity(String order) {
         List<EventResponseDTO> events = getAllEvents();
@@ -174,6 +267,13 @@ public class EventServiceImpl implements IEventService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Checks the availability of all stages at a specific date and time.
+     * Returns available time slots for each stage.
+     *
+     * @param date the date and time to check availability for
+     * @return a list of {@code StageAvailabilityDTO} objects containing availability information for each stage
+     */
     @Override
     public List<StageAvailabilityDTO> checkStageAvailability(LocalDateTime date) {
         List<Stage> allStages = stageRepository.findAll();
@@ -202,6 +302,14 @@ public class EventServiceImpl implements IEventService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Generates available time slots for a stage on a specific date.
+     * Time slots are 2-hour intervals between 9:00 AM and 11:00 PM.
+     *
+     * @param stageId the unique identifier of the stage
+     * @param date the date to generate time slots for
+     * @return a list of {@code LocalDateTime} objects representing available time slots
+     */
     private List<LocalDateTime> generateAvailableTimeSlots(Long stageId, LocalDate date) {
         List<LocalDateTime> slots = new ArrayList<>();
         LocalDateTime startOfDay = date.atTime(LocalTime.of(9, 0));
@@ -221,6 +329,12 @@ public class EventServiceImpl implements IEventService {
         return slots;
     }
 
+    /**
+     * Retrieves the complete schedule of events for a specific stage.
+     *
+     * @param stageId the unique identifier of the stage
+     * @return a list of {@code EventResponseDTO} objects representing all events scheduled for the stage
+     */
     @Override
     public List<EventResponseDTO> getStageSchedule(Long stageId) {
         return eventRepository.findAllByStageIdOrderByDate(stageId).stream()
@@ -228,6 +342,12 @@ public class EventServiceImpl implements IEventService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Generates statistics about all events in the system.
+     * Includes total events, total participants, and daily breakdowns.
+     *
+     * @return an {@code EventStatisticsDTO} object containing event statistics
+     */
     @Override
     public EventStatisticsDTO generateStatistics() {
         List<Event> allEvents = eventRepository.findAll();
@@ -253,6 +373,13 @@ public class EventServiceImpl implements IEventService {
         return new EventStatisticsDTO(totalEvents, totalParticipants, eventsPerDay, participantsPerDay);
     }
 
+    /**
+     * Filters events by the associated artist name.
+     * The search is case-insensitive and results are sorted by date.
+     *
+     * @param artist the artist name to filter by
+     * @return a list of {@code EventResponseDTO} objects representing events associated with the specified artist
+     */
     @Override
     public List<EventResponseDTO> filterByArtist(String artist) {
         return eventRepository.findByAssociatedArtistContainingIgnoreCase(artist).stream()
@@ -261,6 +388,14 @@ public class EventServiceImpl implements IEventService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * Retrieves an event along with ticket information including available seats and revenue.
+     *
+     * @param id the unique identifier of the event
+     * @param region the region code for localization and pricing (e.g., "EU-RO", "US")
+     * @return an {@code EventWithTicketInfoDTO} object containing event and ticket information
+     * @throws RuntimeException if no event exists with the given ID
+     */
     @Override
     public EventWithTicketInfoDTO getEventWithTicketInfo(Long id, String region) {
         Event event = eventRepository.findById(id)
@@ -300,6 +435,17 @@ public class EventServiceImpl implements IEventService {
         return dto;
     }
 
+    /**
+     * Reserves tickets for a specific event.
+     * Validates ticket availability before reservation.
+     *
+     * @param id the unique identifier of the event
+     * @param quantity the number of tickets to reserve
+     * @param ticketType the type of tickets to reserve (e.g., "VIP", "GENERAL", "EARLY_BIRD")
+     * @param region the region code for localization and pricing (e.g., "EU-RO", "US")
+     * @return an {@code EventWithTicketInfoDTO} object containing updated event and ticket information
+     * @throws RuntimeException if the event does not exist or if there are insufficient tickets available
+     */
     @Override
     public EventWithTicketInfoDTO reserveTicketsForEvent(Long id, Integer quantity, String ticketType, String region) {
         Event event = eventRepository.findById(id)
@@ -307,6 +453,7 @@ public class EventServiceImpl implements IEventService {
         
         Integer availableSeats = ticketServiceClient.getAvailableSeats(event.getName(), "Gateway-Service");
         
+        if (availableSeats == null || availableSeats < quantity) {
             throw new RuntimeException("Nu sunt suficiente bilete disponibile. Disponibile: " + 
                     (availableSeats != null ? availableSeats : 0) + ", Solicitate: " + quantity);
         }
@@ -314,6 +461,14 @@ public class EventServiceImpl implements IEventService {
         return getEventWithTicketInfo(id, region);
     }
 
+    /**
+     * Generates a localized price message based on the region.
+     *
+     * @param region the region code for localization (e.g., "EU-RO", "US")
+     * @param eventName the name of the event
+     * @param revenue the total revenue generated by the event
+     * @return a localized message string about the event revenue
+     */
     private String getPriceMessage(String region, String eventName, Double revenue) {
         if ("US".equalsIgnoreCase(region) || region.contains("US")) {
             return String.format("Event '%s' has generated $%.2f in revenue (US pricing).", eventName, revenue);
