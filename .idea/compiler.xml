@@ -7,12 +7,18 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="Artist" />
+        <module name="Event-Service" />
+        <module name="Ticket-Service" />
+        <module name="Gateway" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="Artist" options="-parameters" />
+      <module name="Event-Service" options="-parameters" />
+      <module name="Gateway" options="-parameters" />
+      <module name="Ticket-Service" options="-parameters" />
     </option>
   </component>
 </project>
